@@ -343,6 +343,9 @@
     <script>
       const TMDB_BASE = "https://api.themoviedb.org/3";
       const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
+      const HARDCODED_TMDB_API_KEY = "1b555bc4652d451432b8e8c9083634f5";
+      const HARDCODED_TMDB_READ_TOKEN =
+        "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYjU1NWJjNDY1MmQ0NTE0MzJiOGU4YzkwODM2MzRmNSIsIm5iZiI6MTc3MDc2MjY4MS4yMDk5OTk4LCJzdWIiOiI2OThiYjFiOTM0NzFhZTVmN2Q4ODViY2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Lv7-2QopxSV6XRPNwCy0WGToTSu_oyBrHyCaUatwKME";
 
       const fallbackGenres = [
         { id: 28, name: "Action" },
@@ -374,7 +377,7 @@
       let currentGenres = [...fallbackGenres];
       const selectedGenres = new Set();
       const storedKey = localStorage.getItem("tmdbApiKey") || "";
-      apiKeyEl.value = storedKey;
+      apiKeyEl.value = storedKey || HARDCODED_TMDB_API_KEY;
 
       function formatVotes(votes) {
         return Number(votes || 0).toLocaleString("en-US");
@@ -436,9 +439,25 @@
         });
       }
 
+      async function tmdbGet(path, extraParams = {}) {
+        const params = new URLSearchParams(extraParams);
+        if (!HARDCODED_TMDB_READ_TOKEN) {
+          params.set("api_key", apiKeyEl.value.trim() || HARDCODED_TMDB_API_KEY);
+        }
+
+        const response = await fetch(`${TMDB_BASE}${path}?${params.toString()}`, {
+          headers: HARDCODED_TMDB_READ_TOKEN
+            ? {
+                Authorization: `Bearer ${HARDCODED_TMDB_READ_TOKEN}`,
+                Accept: "application/json"
+              }
+            : undefined
+        });
+        return response;
+      }
+
       async function fetchGenres(apiKey) {
-        const url = `${TMDB_BASE}/genre/movie/list?api_key=${encodeURIComponent(apiKey)}&language=en-US`;
-        const response = await fetch(url);
+        const response = await tmdbGet("/genre/movie/list", { language: "en-US", api_key: apiKey });
         if (!response.ok) {
           throw new Error("Could not load genres from TMDB.");
         }
@@ -448,7 +467,7 @@
       }
 
       async function applyFilters() {
-        const apiKey = apiKeyEl.value.trim();
+        const apiKey = apiKeyEl.value.trim() || HARDCODED_TMDB_API_KEY;
         if (!apiKey) {
           statusEl.textContent = "Add your TMDB API key to load live data.";
           renderMovies([]);
@@ -489,7 +508,7 @@
           for (let i = 1; i <= pagesToLoad; i += 1) {
             const pageParams = new URLSearchParams(params);
             pageParams.set("page", String(i));
-            requests.push(fetch(`${TMDB_BASE}/discover/movie?${pageParams.toString()}`));
+            requests.push(tmdbGet("/discover/movie", Object.fromEntries(pageParams.entries())));
           }
 
           const responses = await Promise.all(requests);
@@ -559,8 +578,9 @@
       useMinVotesEl.addEventListener("change", applyFilters);
 
       renderGenreChips();
-      if (storedKey) {
-        fetchGenres(storedKey).catch(() => {
+      const bootKey = storedKey || HARDCODED_TMDB_API_KEY;
+      if (bootKey) {
+        fetchGenres(bootKey).catch(() => {
           currentGenres = [...fallbackGenres];
           renderGenreChips();
         });
