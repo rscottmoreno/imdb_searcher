@@ -3,21 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>IMDB Searcher</title>
+    <title>IMDb Search Launcher</title>
     <style>
       :root {
-        --bg: #0b1020;
-        --bg-2: #0f162f;
-        --surface: #111a35;
-        --surface-soft: #162247;
+        --bg: #0a1124;
+        --bg-soft: #111b35;
+        --panel: #142247;
+        --panel-soft: #1a2d5d;
         --text: #eaf1ff;
-        --muted: #9fb0d8;
-        --border: #26355f;
-        --primary: #6f9bff;
-        --primary-strong: #5a88f7;
-        --accent: #7ae4c6;
-        --chip: #1c2a55;
-        --shadow: 0 18px 36px rgba(2, 7, 20, 0.4);
+        --muted: #a5b8df;
+        --primary: #7a9fff;
+        --primary-2: #6a8ff7;
+        --accent: #ffd978;
+        --border: #2a3f74;
       }
 
       * {
@@ -26,628 +24,316 @@
 
       body {
         margin: 0;
+        min-height: 100vh;
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
         color: var(--text);
         background:
-          radial-gradient(circle at top right, rgba(111, 155, 255, 0.18), transparent 45%),
-          radial-gradient(circle at 8% 0%, rgba(122, 228, 198, 0.14), transparent 30%),
-          linear-gradient(180deg, var(--bg-2), var(--bg));
-        min-height: 100vh;
+          radial-gradient(circle at 20% 0%, rgba(122, 159, 255, 0.2), transparent 35%),
+          radial-gradient(circle at 95% 10%, rgba(255, 217, 120, 0.12), transparent 28%),
+          linear-gradient(180deg, var(--bg-soft), var(--bg));
       }
 
       .page {
-        width: min(1140px, 94%);
+        width: min(760px, 94%);
         margin: 0 auto;
         padding: 1rem 0 2rem;
       }
 
       .hero {
         border: 1px solid var(--border);
-        background: linear-gradient(140deg, #1a2854, #192f68 50%, #1f3b79);
-        color: #eef3ff;
-        border-radius: 20px;
-        padding: 1.25rem;
-        box-shadow: var(--shadow);
+        border-radius: 18px;
+        background: linear-gradient(140deg, #1a2f66, #1e3c7b 54%, #264b97);
+        padding: 1rem;
       }
 
       .hero h1 {
         margin: 0;
-        font-size: clamp(1.5rem, 5vw, 2.35rem);
+        font-size: clamp(1.4rem, 6vw, 2.1rem);
         letter-spacing: -0.02em;
       }
 
       .hero h1 span {
-        color: #ffd978;
+        color: var(--accent);
       }
 
       .hero p {
-        margin: 0.55rem 0 0;
-        max-width: 760px;
-        color: #d7e0f7;
-        font-size: 0.95rem;
+        margin: 0.5rem 0 0;
+        color: #d7e2ff;
         line-height: 1.5;
-      }
-
-      .layout {
-        margin-top: 1rem;
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: 1fr;
-        align-items: start;
+        font-size: 0.95rem;
       }
 
       .panel {
+        margin-top: 0.9rem;
         border: 1px solid var(--border);
         border-radius: 18px;
-        background: var(--surface);
-        box-shadow: var(--shadow);
-      }
-
-      .filters {
+        background: var(--panel);
         padding: 1rem;
       }
 
-      .filters h2,
-      .results-header h2 {
-        margin: 0 0 0.75rem;
-        font-size: 1.08rem;
-      }
-
       .field {
-        margin-bottom: 0.9rem;
+        margin-bottom: 0.95rem;
       }
 
       .field label {
         display: block;
-        font-size: 0.86rem;
         color: var(--muted);
-        margin-bottom: 0.35rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.45rem;
       }
 
-      .hint {
-        margin-top: 0.35rem;
-        color: var(--muted);
-        font-size: 0.8rem;
-        line-height: 1.35;
-      }
-
-      .hint a {
-        color: var(--primary);
-        text-decoration: none;
-      }
-
-      input[type="number"],
       input[type="text"],
-      input[type="password"] {
+      input[type="number"] {
         width: 100%;
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 0.62rem 0.7rem;
-        font-size: 0.95rem;
-        background: var(--surface-soft);
+        background: var(--panel-soft);
         color: var(--text);
+        font-size: 1rem;
+        padding: 0.78rem 0.85rem;
       }
 
       .chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.45rem;
+        gap: 0.5rem;
       }
 
       .chip {
         border: 1px solid var(--border);
-        background: var(--chip);
-        color: var(--muted);
         border-radius: 999px;
-        font-size: 0.82rem;
-        padding: 0.35rem 0.68rem;
+        background: #1d2f5f;
+        color: var(--muted);
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+        font-weight: 600;
         cursor: pointer;
-        user-select: none;
       }
 
       .chip.active {
-        border-color: #7da1ff;
-        background: #213a78;
-        color: #dce8ff;
+        border-color: #8eafff;
+        background: #2b4688;
+        color: #e6eeff;
       }
 
       .toggle-row {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-bottom: 0.35rem;
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.92rem;
+        margin-bottom: 0.4rem;
       }
 
       .actions {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.6rem;
-      }
-
-      .btn-imdb {
-        grid-column: 1 / -1;
-        border-color: #4f5f8d;
-        background: #1a2343;
-        color: #ffd978;
+        gap: 0.65rem;
       }
 
       button {
+        width: 100%;
+        border-radius: 14px;
+        padding: 0.88rem 1rem;
+        font-size: 1rem;
+        font-weight: 800;
         border: 1px solid transparent;
-        border-radius: 12px;
-        padding: 0.65rem 0.8rem;
-        font-size: 0.95rem;
-        font-weight: 700;
         cursor: pointer;
         touch-action: manipulation;
       }
 
       .btn-primary {
-        background: linear-gradient(180deg, var(--primary), var(--primary-strong));
+        background: linear-gradient(180deg, var(--primary), var(--primary-2));
         color: #fff;
       }
 
       .btn-secondary {
-        border-color: var(--border);
+        background: #223766;
+        color: #d7e3ff;
+        border-color: #35508e;
+      }
+
+      .url-preview {
+        margin-top: 0.8rem;
+        padding: 0.75rem;
+        border: 1px dashed #375593;
+        border-radius: 12px;
         color: var(--muted);
-        background: var(--surface-soft);
+        word-break: break-all;
+        font-size: 0.82rem;
       }
 
-      .results-wrap {
-        padding: 1rem;
-      }
-
-      .results-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: end;
-        gap: 0.8rem;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 0.8rem;
-      }
-
-      .status {
+      .hint {
         color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      .cards {
-        margin-top: 1rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 0.85rem;
-      }
-
-      .card {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        background: #0e1732;
-      }
-
-      .poster {
-        width: 100%;
-        aspect-ratio: 2 / 3;
-        object-fit: cover;
-        display: block;
-        background: #1a2750;
-      }
-
-      .card-content {
-        padding: 0.85rem;
-      }
-
-      .card h3 {
-        margin: 0;
-        font-size: 1rem;
-      }
-
-      .meta {
-        margin-top: 0.35rem;
-        color: var(--muted);
-        font-size: 0.88rem;
-      }
-
-      .badges {
-        margin-top: 0.7rem;
-        display: flex;
-        gap: 0.45rem;
-        flex-wrap: wrap;
-      }
-
-      .badge {
-        border-radius: 999px;
-        font-size: 0.78rem;
-        padding: 0.23rem 0.5rem;
-      }
-
-      .badge-rating {
-        background: rgba(255, 217, 120, 0.18);
-        color: #ffe5a4;
-      }
-
-      .badge-votes {
-        background: rgba(122, 228, 198, 0.16);
-        color: #b2f4e2;
-      }
-
-      .empty {
-        padding: 1.1rem;
-        border: 1px dashed var(--border);
-        border-radius: 14px;
-        color: var(--muted);
-        font-size: 0.95rem;
-      }
-
-      @media (min-width: 940px) {
-        .layout {
-          grid-template-columns: 330px 1fr;
-        }
-
-        .filters {
-          position: sticky;
-          top: 1rem;
-        }
+        font-size: 0.82rem;
+        margin-top: 0.3rem;
       }
     </style>
   </head>
   <body>
     <main class="page">
       <section class="hero">
-        <h1><span>IMDB</span> Searcher</h1>
-        <p>
-          Browse English-language films with modern filters: pick one or more genres, set the oldest year, choose minimum vote count,
-          and get results sorted automatically by highest IMDb rating.
-        </p>
+        <h1><span>IMDb</span> Search Launcher</h1>
+        <p>Pick filters, then jump straight into IMDb Advanced Search with one tap.</p>
       </section>
 
-      <section class="layout">
-        <aside class="panel filters">
-          <h2>Filters</h2>
+      <section class="panel">
+        <div class="field">
+          <label>Genre Picker</label>
+          <div class="chips" id="genreChips"></div>
+        </div>
 
-          <div class="field">
-            <label for="apiKeyInput">TMDB API key</label>
-            <input id="apiKeyInput" type="password" placeholder="Paste your TMDB v3 API key" autocomplete="off" />
-            <p class="hint">
-              Stored only in this browser (not hardcoded in source). Get one at
-              <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">themoviedb.org/settings/api</a>.
-            </p>
-          </div>
+        <div class="field">
+          <label for="oldestYear">Oldest Year</label>
+          <input id="oldestYear" type="number" min="1900" max="2100" value="2000" />
+        </div>
 
-          <div class="field">
-            <label for="titleSearch">Title keyword (optional)</label>
-            <input id="titleSearch" type="text" placeholder="e.g. dark, matrix, king" />
-          </div>
+        <div class="field">
+          <label for="minRating">Minimum Rating</label>
+          <input id="minRating" type="number" min="0" max="10" step="0.1" placeholder="e.g. 7.5" />
+          <p class="hint">Optional</p>
+        </div>
 
-          <div class="field">
-            <label>Genres</label>
-            <div class="chips" id="genreChips"></div>
-          </div>
+        <div class="field">
+          <label for="titleSearch">Title Keyword</label>
+          <input id="titleSearch" type="text" placeholder="e.g. matrix, king, batman" />
+          <p class="hint">Optional</p>
+        </div>
 
-          <div class="field">
-            <label for="oldestYear">Oldest year (optional)</label>
-            <input id="oldestYear" type="number" min="1900" max="2100" value="2000" />
+        <div class="field">
+          <div class="toggle-row">
+            <input id="useMinVotes" type="checkbox" checked />
+            <label for="useMinVotes">Use minimum votes</label>
           </div>
+          <input id="minVotes" type="number" min="0" step="1000" value="50000" />
+          <p class="hint">Optional</p>
+        </div>
 
-          <div class="field">
-            <div class="toggle-row">
-              <input id="useMinVotes" type="checkbox" checked />
-              <label for="useMinVotes">Use minimum votes</label>
-            </div>
-            <input id="minVotes" type="number" min="0" step="1000" value="10000" />
-          </div>
+        <div class="actions">
+          <button id="openImdbButton" class="btn-primary" type="button">Search on IMDb</button>
+          <button id="resetButton" class="btn-secondary" type="button">Reset Filters</button>
+        </div>
 
-          <div class="field">
-            <label for="minRating">Minimum rating (optional)</label>
-            <input id="minRating" type="number" min="0" max="10" step="0.1" placeholder="e.g. 7.5" />
-          </div>
-
-          <div class="actions">
-            <button id="applyButton" class="btn-primary" type="button">Apply</button>
-            <button id="resetButton" class="btn-secondary" type="button">Reset</button>
-            <button id="openImdbButton" class="btn-imdb" type="button">Open in IMDb Advanced Search</button>
-          </div>
-        </aside>
-
-        <section class="panel results-wrap">
-          <div class="results-header">
-            <h2>Top Rated Results</h2>
-            <p class="status" id="statusText">Loading films...</p>
-          </div>
-          <div id="results" class="cards"></div>
-        </section>
+        <div id="urlPreview" class="url-preview"></div>
       </section>
     </main>
 
     <script>
-      const TMDB_BASE = "https://api.themoviedb.org/3";
-      const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
-
-      const fallbackGenres = [
-        { id: 28, name: "Action" },
-        { id: 12, name: "Adventure" },
-        { id: 16, name: "Animation" },
-        { id: 35, name: "Comedy" },
-        { id: 80, name: "Crime" },
-        { id: 99, name: "Documentary" },
-        { id: 18, name: "Drama" },
-        { id: 10751, name: "Family" },
-        { id: 14, name: "Fantasy" },
-        { id: 27, name: "Horror" },
-        { id: 9648, name: "Mystery" },
-        { id: 878, name: "Sci-Fi" },
-        { id: 53, name: "Thriller" }
+      const genres = [
+        "Action",
+        "Adventure",
+        "Animation",
+        "Biography",
+        "Comedy",
+        "Crime",
+        "Documentary",
+        "Drama",
+        "Family",
+        "Fantasy",
+        "Horror",
+        "Mystery",
+        "Romance",
+        "Sci-Fi",
+        "Thriller"
       ];
 
-      const resultsEl = document.getElementById("results");
-      const statusEl = document.getElementById("statusText");
       const chipsEl = document.getElementById("genreChips");
-      const apiKeyEl = document.getElementById("apiKeyInput");
-      const titleSearchEl = document.getElementById("titleSearch");
       const oldestYearEl = document.getElementById("oldestYear");
+      const minRatingEl = document.getElementById("minRating");
+      const titleSearchEl = document.getElementById("titleSearch");
       const useMinVotesEl = document.getElementById("useMinVotes");
       const minVotesEl = document.getElementById("minVotes");
-      const minRatingEl = document.getElementById("minRating");
-      const applyButtonEl = document.getElementById("applyButton");
-      const resetButtonEl = document.getElementById("resetButton");
       const openImdbButtonEl = document.getElementById("openImdbButton");
+      const resetButtonEl = document.getElementById("resetButton");
+      const urlPreviewEl = document.getElementById("urlPreview");
 
-      let currentGenres = [...fallbackGenres];
       const selectedGenres = new Set();
-      const storedKey = localStorage.getItem("tmdbApiKey") || "";
-      apiKeyEl.value = storedKey;
-
-      function formatVotes(votes) {
-        return Number(votes || 0).toLocaleString("en-US");
-      }
 
       function toImdbGenreName(genreName) {
-        const map = {
-          "Sci-Fi": "sci_fi"
-        };
+        const map = { "Sci-Fi": "sci_fi" };
         return map[genreName] || genreName.toLowerCase().replace(/\s+/g, "_");
       }
 
-      function renderGenreChips() {
-        chipsEl.innerHTML = "";
-        currentGenres.forEach((genre) => {
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "chip";
-          chip.textContent = genre.name;
-          if (selectedGenres.has(genre.id)) {
-            chip.classList.add("active");
-          }
-          chip.addEventListener("click", () => {
-            if (selectedGenres.has(genre.id)) {
-              selectedGenres.delete(genre.id);
-              chip.classList.remove("active");
-            } else {
-              selectedGenres.add(genre.id);
-              chip.classList.add("active");
-            }
-          });
-          chipsEl.appendChild(chip);
-        });
-      }
-
-      function renderMovies(list) {
-        resultsEl.innerHTML = "";
-        if (!list.length) {
-          resultsEl.innerHTML = '<div class="empty">No movies matched these filters. Try a lower vote threshold or fewer genres.</div>';
-          return;
-        }
-
-        list.forEach((movie) => {
-          const genreNames = (movie.genre_ids || [])
-            .map((id) => currentGenres.find((g) => g.id === id)?.name)
-            .filter(Boolean)
-            .join(", ");
-          const poster = movie.poster_path
-            ? `${POSTER_BASE}${movie.poster_path}`
-            : "https://via.placeholder.com/500x750?text=No+Poster";
-
-          const card = document.createElement("article");
-          card.className = "card";
-          card.innerHTML = `
-            <img class="poster" src="${poster}" alt="${movie.title} poster" loading="lazy" />
-            <div class="card-content">
-              <h3>${movie.title}</h3>
-              <p class="meta">${movie.release_date?.slice(0, 4) || "N/A"} • ${genreNames || "Unknown genre"} • English</p>
-              <div class="badges">
-                <span class="badge badge-rating">TMDB ${Number(movie.vote_average || 0).toFixed(1)}</span>
-                <span class="badge badge-votes">${formatVotes(movie.vote_count)} votes</span>
-              </div>
-            </div>
-          `;
-          resultsEl.appendChild(card);
-        });
-      }
-
-      async function tmdbGet(path, extraParams = {}) {
-        const params = new URLSearchParams(extraParams);
-        params.set("api_key", apiKeyEl.value.trim());
-        const response = await fetch(`${TMDB_BASE}${path}?${params.toString()}`);
-        return response;
-      }
-
-      async function fetchGenres() {
-        const response = await tmdbGet("/genre/movie/list", { language: "en-US" });
-        if (!response.ok) {
-          throw new Error("Could not load genres from TMDB.");
-        }
-        const data = await response.json();
-        currentGenres = Array.isArray(data.genres) && data.genres.length ? data.genres : fallbackGenres;
-        renderGenreChips();
-      }
-
-      async function applyFilters() {
-        const apiKey = apiKeyEl.value.trim();
-        if (!apiKey) {
-          statusEl.textContent = "Add your TMDB API key to load live data.";
-          renderMovies([]);
-          return;
-        }
-
-        localStorage.setItem("tmdbApiKey", apiKey);
-
-        const titleQuery = titleSearchEl.value.trim().toLowerCase();
-        const oldestYear = Number(oldestYearEl.value);
-        const useVotes = useMinVotesEl.checked;
-        const minVotes = Number(minVotesEl.value || 10000);
-        const minRating = minRatingEl.value ? Number(minRatingEl.value) : null;
-        const selectedGenreCsv = [...selectedGenres].join(",");
-
+      function buildImdbUrl() {
         const params = new URLSearchParams({
-          api_key: apiKey,
-          include_adult: "false",
-          include_video: "false",
-          language: "en-US",
-          sort_by: "vote_average.desc",
-          with_original_language: "en",
-          vote_count_gte: useVotes ? String(minVotes) : "0",
-          page: "1"
-        });
-
-        if (oldestYearEl.value) {
-          params.set("primary_release_date.gte", `${oldestYear}-01-01`);
-        }
-        if (selectedGenreCsv) {
-          params.set("with_genres", selectedGenreCsv);
-        }
-        if (minRatingEl.value && !Number.isNaN(minRating)) {
-          params.set("vote_average.gte", String(minRating));
-        }
-
-        statusEl.textContent = "Loading live movies...";
-
-        try {
-          const pagesToLoad = 3;
-          const requests = [];
-          for (let i = 1; i <= pagesToLoad; i += 1) {
-            const pageParams = new URLSearchParams(params);
-            pageParams.set("page", String(i));
-            requests.push(tmdbGet("/discover/movie", Object.fromEntries(pageParams.entries())));
-          }
-
-          const responses = await Promise.all(requests);
-          responses.forEach((res) => {
-            if (!res.ok) {
-              throw new Error("Failed to fetch live movie data.");
-            }
-          });
-
-          const payloads = await Promise.all(responses.map((res) => res.json()));
-          let merged = payloads.flatMap((payload) => payload.results || []);
-
-          if (titleQuery) {
-            merged = merged.filter((movie) => movie.title?.toLowerCase().includes(titleQuery));
-          }
-
-          merged = merged.sort((a, b) => {
-            if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
-            return b.vote_count - a.vote_count;
-          });
-
-          statusEl.textContent = `Showing ${merged.length} English film${merged.length === 1 ? "" : "s"}, sorted by highest rated.`;
-          renderMovies(merged);
-        } catch (error) {
-          statusEl.textContent = "Unable to load live data. Check API key and try again.";
-          renderMovies([]);
-          console.error(error);
-        }
-      }
-
-      function resetFilters() {
-        selectedGenres.clear();
-        titleSearchEl.value = "";
-        oldestYearEl.value = "2000";
-        useMinVotesEl.checked = true;
-        minVotesEl.value = "10000";
-        minRatingEl.value = "";
-        renderGenreChips();
-      }
-
-      function openImdbAdvancedSearch() {
-        const imdbParams = new URLSearchParams({
           title_type: "feature",
           languages: "en",
           sort: "user_rating,desc"
         });
 
-        const titleQuery = titleSearchEl.value.trim();
         const oldestYear = oldestYearEl.value.trim();
-        const useVotes = useMinVotesEl.checked;
-        const minVotes = minVotesEl.value.trim();
         const minRating = minRatingEl.value.trim();
+        const titleQuery = titleSearchEl.value.trim();
+        const minVotes = minVotesEl.value.trim();
 
-        if (titleQuery) {
-          imdbParams.set("title", titleQuery);
-        }
         if (oldestYear) {
-          imdbParams.set("release_date", `${oldestYear}-01-01,`);
-        }
-        if (useVotes && minVotes) {
-          imdbParams.set("num_votes", `${minVotes},`);
+          params.set("release_date", `${oldestYear}-01-01,`);
         }
         if (minRating) {
-          imdbParams.set("user_rating", `${minRating},`);
+          params.set("user_rating", `${minRating},`);
+        }
+        if (titleQuery) {
+          params.set("title", titleQuery);
+        }
+        if (useMinVotesEl.checked && minVotes) {
+          params.set("num_votes", `${minVotes},`);
         }
         if (selectedGenres.size) {
-          const genreNames = [...selectedGenres]
-            .map((id) => currentGenres.find((genre) => genre.id === id)?.name)
-            .filter(Boolean)
-            .map((name) => toImdbGenreName(name));
-          if (genreNames.length) {
-            imdbParams.set("genres", genreNames.join(","));
-          }
+          params.set("genres", [...selectedGenres].map(toImdbGenreName).join(","));
         }
 
-        window.open(`https://www.imdb.com/search/title/?${imdbParams.toString()}`, "_blank", "noopener,noreferrer");
+        return `https://www.imdb.com/search/title/?${params.toString()}`;
       }
 
-      apiKeyEl.addEventListener("change", async () => {
-        const key = apiKeyEl.value.trim();
-        if (!key) {
-          currentGenres = [...fallbackGenres];
-          renderGenreChips();
-          return;
-        }
-        localStorage.setItem("tmdbApiKey", key);
-        try {
-          await fetchGenres();
-        } catch {
-          currentGenres = [...fallbackGenres];
-          renderGenreChips();
-        }
-      });
+      function updatePreview() {
+        urlPreviewEl.textContent = buildImdbUrl();
+      }
 
-      applyButtonEl.addEventListener("click", applyFilters);
-      resetButtonEl.addEventListener("click", () => {
-        resetFilters();
-        applyFilters();
-      });
-      openImdbButtonEl.addEventListener("click", openImdbAdvancedSearch);
-      titleSearchEl.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          applyFilters();
-        }
-      });
-      oldestYearEl.addEventListener("change", applyFilters);
-      minVotesEl.addEventListener("change", applyFilters);
-      minRatingEl.addEventListener("change", applyFilters);
-      useMinVotesEl.addEventListener("change", applyFilters);
-
-      renderGenreChips();
-      if (storedKey) {
-        fetchGenres().catch(() => {
-          currentGenres = [...fallbackGenres];
-          renderGenreChips();
+      function renderGenreChips() {
+        chipsEl.innerHTML = "";
+        genres.forEach((genre) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "chip";
+          chip.textContent = genre;
+          chip.addEventListener("click", () => {
+            if (selectedGenres.has(genre)) {
+              selectedGenres.delete(genre);
+              chip.classList.remove("active");
+            } else {
+              selectedGenres.add(genre);
+              chip.classList.add("active");
+            }
+            updatePreview();
+          });
+          chipsEl.appendChild(chip);
         });
       }
-      applyFilters();
+
+      function resetFilters() {
+        selectedGenres.clear();
+        oldestYearEl.value = "2000";
+        minRatingEl.value = "";
+        titleSearchEl.value = "";
+        useMinVotesEl.checked = true;
+        minVotesEl.value = "50000";
+        renderGenreChips();
+        updatePreview();
+      }
+
+      openImdbButtonEl.addEventListener("click", () => {
+        window.open(buildImdbUrl(), "_blank", "noopener,noreferrer");
+      });
+
+      resetButtonEl.addEventListener("click", resetFilters);
+      oldestYearEl.addEventListener("input", updatePreview);
+      minRatingEl.addEventListener("input", updatePreview);
+      titleSearchEl.addEventListener("input", updatePreview);
+      minVotesEl.addEventListener("input", updatePreview);
+      useMinVotesEl.addEventListener("change", updatePreview);
+
+      renderGenreChips();
+      updatePreview();
     </script>
   </body>
 </html>
