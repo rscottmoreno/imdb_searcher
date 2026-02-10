@@ -102,6 +102,18 @@
         font-weight: 600;
       }
 
+      .hint {
+        margin-top: 0.35rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.35;
+      }
+
+      .hint a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+
       input[type="number"],
       input[type="text"] {
         width: 100%;
@@ -197,8 +209,20 @@
       .card {
         border: 1px solid var(--border);
         border-radius: 14px;
-        padding: 0.85rem;
+        overflow: hidden;
         background: #fff;
+      }
+
+      .poster {
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        display: block;
+        background: #edf2fb;
+      }
+
+      .card-content {
+        padding: 0.85rem;
       }
 
       .card h3 {
@@ -269,6 +293,15 @@
           <h2>Filters</h2>
 
           <div class="field">
+            <label for="apiKeyInput">TMDB API key</label>
+            <input id="apiKeyInput" type="text" placeholder="Paste your TMDB v3 API key" />
+            <p class="hint">
+              Stored only in your browser. Get one at
+              <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">themoviedb.org/settings/api</a>.
+            </p>
+          </div>
+
+          <div class="field">
             <label for="titleSearch">Title keyword (optional)</label>
             <input id="titleSearch" type="text" placeholder="e.g. dark, matrix, king" />
           </div>
@@ -308,24 +341,29 @@
     </main>
 
     <script>
-      const movies = [
-        { title: "The Shawshank Redemption", year: 1994, rating: 9.3, genres: ["Drama"], votes: 2800000, language: "English" },
-        { title: "The Dark Knight", year: 2008, rating: 9.0, genres: ["Action", "Crime", "Drama"], votes: 2800000, language: "English" },
-        { title: "The Lord of the Rings: The Return of the King", year: 2003, rating: 9.0, genres: ["Adventure", "Drama", "Fantasy"], votes: 1950000, language: "English" },
-        { title: "Pulp Fiction", year: 1994, rating: 8.9, genres: ["Crime", "Drama"], votes: 2200000, language: "English" },
-        { title: "Inception", year: 2010, rating: 8.8, genres: ["Action", "Adventure", "Sci-Fi"], votes: 2500000, language: "English" },
-        { title: "Fight Club", year: 1999, rating: 8.8, genres: ["Drama"], votes: 2300000, language: "English" },
-        { title: "The Matrix", year: 1999, rating: 8.7, genres: ["Action", "Sci-Fi"], votes: 2000000, language: "English" },
-        { title: "Interstellar", year: 2014, rating: 8.7, genres: ["Adventure", "Drama", "Sci-Fi"], votes: 2100000, language: "English" },
-        { title: "Whiplash", year: 2014, rating: 8.5, genres: ["Drama", "Music"], votes: 980000, language: "English" },
-        { title: "Dune: Part Two", year: 2024, rating: 8.5, genres: ["Action", "Adventure", "Sci-Fi"], votes: 540000, language: "English" },
-        { title: "A Quiet Place", year: 2018, rating: 7.5, genres: ["Drama", "Horror", "Sci-Fi"], votes: 610000, language: "English" },
-        { title: "Parasite", year: 2019, rating: 8.5, genres: ["Drama", "Thriller"], votes: 980000, language: "Korean" }
+      const TMDB_BASE = "https://api.themoviedb.org/3";
+      const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
+
+      const fallbackGenres = [
+        { id: 28, name: "Action" },
+        { id: 12, name: "Adventure" },
+        { id: 16, name: "Animation" },
+        { id: 35, name: "Comedy" },
+        { id: 80, name: "Crime" },
+        { id: 99, name: "Documentary" },
+        { id: 18, name: "Drama" },
+        { id: 10751, name: "Family" },
+        { id: 14, name: "Fantasy" },
+        { id: 27, name: "Horror" },
+        { id: 9648, name: "Mystery" },
+        { id: 878, name: "Sci-Fi" },
+        { id: 53, name: "Thriller" }
       ];
 
       const resultsEl = document.getElementById("results");
       const statusEl = document.getElementById("statusText");
       const chipsEl = document.getElementById("genreChips");
+      const apiKeyEl = document.getElementById("apiKeyInput");
       const titleSearchEl = document.getElementById("titleSearch");
       const oldestYearEl = document.getElementById("oldestYear");
       const useMinVotesEl = document.getElementById("useMinVotes");
@@ -333,29 +371,33 @@
       const applyButtonEl = document.getElementById("applyButton");
       const resetButtonEl = document.getElementById("resetButton");
 
+      let currentGenres = [...fallbackGenres];
       const selectedGenres = new Set();
-      const allGenres = [...new Set(movies.flatMap((movie) => movie.genres))].sort();
+      const storedKey = localStorage.getItem("tmdbApiKey") || "";
+      apiKeyEl.value = storedKey;
 
       function formatVotes(votes) {
-        return votes.toLocaleString("en-US");
+        return Number(votes || 0).toLocaleString("en-US");
       }
 
       function renderGenreChips() {
         chipsEl.innerHTML = "";
-        allGenres.forEach((genre) => {
+        currentGenres.forEach((genre) => {
           const chip = document.createElement("button");
           chip.type = "button";
           chip.className = "chip";
-          chip.textContent = genre;
+          chip.textContent = genre.name;
+          if (selectedGenres.has(genre.id)) {
+            chip.classList.add("active");
+          }
           chip.addEventListener("click", () => {
-            if (selectedGenres.has(genre)) {
-              selectedGenres.delete(genre);
+            if (selectedGenres.has(genre.id)) {
+              selectedGenres.delete(genre.id);
               chip.classList.remove("active");
             } else {
-              selectedGenres.add(genre);
+              selectedGenres.add(genre.id);
               chip.classList.add("active");
             }
-            applyFilters();
           });
           chipsEl.appendChild(chip);
         });
@@ -369,51 +411,113 @@
         }
 
         list.forEach((movie) => {
+          const genreNames = (movie.genre_ids || [])
+            .map((id) => currentGenres.find((g) => g.id === id)?.name)
+            .filter(Boolean)
+            .join(", ");
+          const poster = movie.poster_path
+            ? `${POSTER_BASE}${movie.poster_path}`
+            : "https://via.placeholder.com/500x750?text=No+Poster";
+
           const card = document.createElement("article");
           card.className = "card";
           card.innerHTML = `
-            <h3>${movie.title}</h3>
-            <p class="meta">${movie.year} • ${movie.genres.join(", ")} • ${movie.language}</p>
-            <div class="badges">
-              <span class="badge badge-rating">IMDb ${movie.rating}</span>
-              <span class="badge badge-votes">${formatVotes(movie.votes)} votes</span>
+            <img class="poster" src="${poster}" alt="${movie.title} poster" loading="lazy" />
+            <div class="card-content">
+              <h3>${movie.title}</h3>
+              <p class="meta">${movie.release_date?.slice(0, 4) || "N/A"} • ${genreNames || "Unknown genre"} • English</p>
+              <div class="badges">
+                <span class="badge badge-rating">TMDB ${Number(movie.vote_average || 0).toFixed(1)}</span>
+                <span class="badge badge-votes">${formatVotes(movie.vote_count)} votes</span>
+              </div>
             </div>
           `;
           resultsEl.appendChild(card);
         });
       }
 
-      function applyFilters() {
+      async function fetchGenres(apiKey) {
+        const url = `${TMDB_BASE}/genre/movie/list?api_key=${encodeURIComponent(apiKey)}&language=en-US`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Could not load genres from TMDB.");
+        }
+        const data = await response.json();
+        currentGenres = Array.isArray(data.genres) && data.genres.length ? data.genres : fallbackGenres;
+        renderGenreChips();
+      }
+
+      async function applyFilters() {
+        const apiKey = apiKeyEl.value.trim();
+        if (!apiKey) {
+          statusEl.textContent = "Add your TMDB API key to load live data.";
+          renderMovies([]);
+          return;
+        }
+
+        localStorage.setItem("tmdbApiKey", apiKey);
+
         const titleQuery = titleSearchEl.value.trim().toLowerCase();
         const oldestYear = Number(oldestYearEl.value);
-        const shouldUseVotes = useMinVotesEl.checked;
+        const useVotes = useMinVotesEl.checked;
         const minVotes = Number(minVotesEl.value || 10000);
+        const selectedGenreCsv = [...selectedGenres].join(",");
 
-        const filtered = movies
-          .filter((movie) => movie.language.toLowerCase() === "english")
-          .filter((movie) => {
-            if (!titleQuery) return true;
-            return movie.title.toLowerCase().includes(titleQuery);
-          })
-          .filter((movie) => {
-            if (!selectedGenres.size) return true;
-            return [...selectedGenres].every((genre) => movie.genres.includes(genre));
-          })
-          .filter((movie) => {
-            if (!oldestYearEl.value) return true;
-            return movie.year >= oldestYear;
-          })
-          .filter((movie) => {
-            if (!shouldUseVotes) return true;
-            return movie.votes >= minVotes;
-          })
-          .sort((a, b) => {
-            if (b.rating !== a.rating) return b.rating - a.rating;
-            return b.votes - a.votes;
+        const params = new URLSearchParams({
+          api_key: apiKey,
+          include_adult: "false",
+          include_video: "false",
+          language: "en-US",
+          sort_by: "vote_average.desc",
+          with_original_language: "en",
+          vote_count_gte: useVotes ? String(minVotes) : "0",
+          page: "1"
+        });
+
+        if (oldestYearEl.value) {
+          params.set("primary_release_date.gte", `${oldestYear}-01-01`);
+        }
+        if (selectedGenreCsv) {
+          params.set("with_genres", selectedGenreCsv);
+        }
+
+        statusEl.textContent = "Loading live movies...";
+
+        try {
+          const pagesToLoad = 3;
+          const requests = [];
+          for (let i = 1; i <= pagesToLoad; i += 1) {
+            const pageParams = new URLSearchParams(params);
+            pageParams.set("page", String(i));
+            requests.push(fetch(`${TMDB_BASE}/discover/movie?${pageParams.toString()}`));
+          }
+
+          const responses = await Promise.all(requests);
+          responses.forEach((res) => {
+            if (!res.ok) {
+              throw new Error("Failed to fetch live movie data.");
+            }
           });
 
-        statusEl.textContent = `Showing ${filtered.length} English film${filtered.length === 1 ? "" : "s"}, sorted by highest rated.`;
-        renderMovies(filtered);
+          const payloads = await Promise.all(responses.map((res) => res.json()));
+          let merged = payloads.flatMap((payload) => payload.results || []);
+
+          if (titleQuery) {
+            merged = merged.filter((movie) => movie.title?.toLowerCase().includes(titleQuery));
+          }
+
+          merged = merged.sort((a, b) => {
+            if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+            return b.vote_count - a.vote_count;
+          });
+
+          statusEl.textContent = `Showing ${merged.length} English film${merged.length === 1 ? "" : "s"}, sorted by highest rated.`;
+          renderMovies(merged);
+        } catch (error) {
+          statusEl.textContent = "Unable to load live data. Check API key and try again.";
+          renderMovies([]);
+          console.error(error);
+        }
       }
 
       function resetFilters() {
@@ -423,11 +527,28 @@
         useMinVotesEl.checked = true;
         minVotesEl.value = "10000";
         renderGenreChips();
-        applyFilters();
       }
 
+      apiKeyEl.addEventListener("change", async () => {
+        const key = apiKeyEl.value.trim();
+        if (!key) {
+          currentGenres = [...fallbackGenres];
+          renderGenreChips();
+          return;
+        }
+        try {
+          await fetchGenres(key);
+        } catch {
+          currentGenres = [...fallbackGenres];
+          renderGenreChips();
+        }
+      });
+
       applyButtonEl.addEventListener("click", applyFilters);
-      resetButtonEl.addEventListener("click", resetFilters);
+      resetButtonEl.addEventListener("click", () => {
+        resetFilters();
+        applyFilters();
+      });
       titleSearchEl.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           applyFilters();
@@ -438,6 +559,12 @@
       useMinVotesEl.addEventListener("change", applyFilters);
 
       renderGenreChips();
+      if (storedKey) {
+        fetchGenres(storedKey).catch(() => {
+          currentGenres = [...fallbackGenres];
+          renderGenreChips();
+        });
+      }
       applyFilters();
     </script>
   </body>
