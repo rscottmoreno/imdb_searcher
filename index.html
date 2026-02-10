@@ -153,6 +153,11 @@
         border-color: #35508e;
       }
 
+      .btn-ai {
+        background: linear-gradient(180deg, #2f7c6a, #266757);
+        color: #ecfff8;
+      }
+
       .url-preview {
         margin-top: 0.8rem;
         padding: 0.75rem;
@@ -168,6 +173,16 @@
         font-size: 0.82rem;
         margin-top: 0.3rem;
       }
+
+      .ai-note {
+        margin-top: 0.8rem;
+        padding: 0.7rem;
+        border: 1px dashed #3d7f70;
+        border-radius: 12px;
+        color: #bdeedd;
+        font-size: 0.82rem;
+        line-height: 1.35;
+      }
     </style>
   </head>
   <body>
@@ -178,6 +193,12 @@
       </section>
 
       <section class="panel">
+        <div class="field">
+          <label for="aiPrompt">Search</label>
+          <input id="aiPrompt" type="text" placeholder="e.g. scary movie in the woods" />
+          <p class="hint">Optional natural language prompt</p>
+        </div>
+
         <div class="field">
           <label>Genre Picker</label>
           <div class="chips" id="genreChips"></div>
@@ -211,10 +232,12 @@
 
         <div class="actions">
           <button id="openImdbButton" class="btn-primary" type="button">Search on IMDb</button>
+          <button id="aiSearchButton" class="btn-ai" type="button">AI Search on IMDb</button>
           <button id="resetButton" class="btn-secondary" type="button">Reset Filters</button>
         </div>
 
         <div id="urlPreview" class="url-preview"></div>
+        <div id="aiNote" class="ai-note">AI helper ready. Add a prompt to guide the search.</div>
       </section>
     </main>
 
@@ -240,12 +263,15 @@
       const chipsEl = document.getElementById("genreChips");
       const oldestYearEl = document.getElementById("oldestYear");
       const minRatingEl = document.getElementById("minRating");
+      const aiPromptEl = document.getElementById("aiPrompt");
       const titleSearchEl = document.getElementById("titleSearch");
       const useMinVotesEl = document.getElementById("useMinVotes");
       const minVotesEl = document.getElementById("minVotes");
       const openImdbButtonEl = document.getElementById("openImdbButton");
+      const aiSearchButtonEl = document.getElementById("aiSearchButton");
       const resetButtonEl = document.getElementById("resetButton");
       const urlPreviewEl = document.getElementById("urlPreview");
+      const aiNoteEl = document.getElementById("aiNote");
 
       const selectedGenres = new Set();
 
@@ -254,7 +280,66 @@
         return map[genreName] || genreName.toLowerCase().replace(/\s+/g, "_");
       }
 
-      function buildImdbUrl() {
+      function parseAiPrompt(prompt) {
+        const text = (prompt || "").trim().toLowerCase();
+        if (!text) {
+          return { genres: [], keywords: [], titleHint: "" };
+        }
+
+        const genreSignals = [
+          { terms: ["scary", "horror", "haunted", "ghost", "demon", "slasher"], genre: "Horror" },
+          { terms: ["funny", "comedy", "laugh"], genre: "Comedy" },
+          { terms: ["space", "alien", "future", "robot", "sci-fi", "science fiction"], genre: "Sci-Fi" },
+          { terms: ["romantic", "love", "romance"], genre: "Romance" },
+          { terms: ["crime", "mafia", "gangster", "heist"], genre: "Crime" },
+          { terms: ["mystery", "detective", "whodunit"], genre: "Mystery" },
+          { terms: ["thriller", "suspense"], genre: "Thriller" },
+          { terms: ["war", "army", "battle"], genre: "Action" },
+          { terms: ["family", "kids"], genre: "Family" },
+          { terms: ["dragon", "magic", "wizard"], genre: "Fantasy" },
+          { terms: ["real story", "true story", "biopic"], genre: "Biography" }
+        ];
+
+        const keywordSignals = [
+          { terms: ["woods", "forest", "cabin"], keyword: "forest" },
+          { terms: ["zombie", "undead"], keyword: "zombie" },
+          { terms: ["shark", "ocean", "sea"], keyword: "ocean" },
+          { terms: ["school", "college"], keyword: "school" },
+          { terms: ["serial killer", "killer"], keyword: "serial-killer" },
+          { terms: ["found footage"], keyword: "found-footage" }
+        ];
+
+        const detectedGenres = new Set();
+        const detectedKeywords = new Set();
+
+        genreSignals.forEach((entry) => {
+          if (entry.terms.some((term) => text.includes(term))) {
+            detectedGenres.add(entry.genre);
+          }
+        });
+        keywordSignals.forEach((entry) => {
+          if (entry.terms.some((term) => text.includes(term))) {
+            detectedKeywords.add(entry.keyword);
+          }
+        });
+
+        const tokens = text
+          .replace(/[^a-z0-9\s]/g, " ")
+          .split(/\s+/)
+          .filter(Boolean)
+          .filter((word) => !["movie", "film", "about", "with", "that", "from", "after", "before", "the", "and"].includes(word))
+          .slice(0, 5);
+
+        return {
+          genres: [...detectedGenres],
+          keywords: [...detectedKeywords],
+          titleHint: tokens.join(" ")
+        };
+      }
+
+      function buildImdbUrl(options = {}) {
+        const { aiPrompt = "" } = options;
+        const aiData = parseAiPrompt(aiPrompt);
         const params = new URLSearchParams({
           title_type: "feature",
           languages: "en",
@@ -263,7 +348,7 @@
 
         const oldestYear = oldestYearEl.value.trim();
         const minRating = minRatingEl.value.trim();
-        const titleQuery = titleSearchEl.value.trim();
+        const titleQuery = titleSearchEl.value.trim() || aiData.titleHint;
         const minVotes = minVotesEl.value.trim();
 
         if (oldestYear) {
@@ -278,15 +363,33 @@
         if (useMinVotesEl.checked && minVotes) {
           params.set("num_votes", `${minVotes},`);
         }
-        if (selectedGenres.size) {
-          params.set("genres", [...selectedGenres].map(toImdbGenreName).join(","));
+        const allGenres = new Set([...selectedGenres, ...aiData.genres]);
+        if (allGenres.size) {
+          params.set("genres", [...allGenres].map(toImdbGenreName).join(","));
+        }
+        if (aiData.keywords.length) {
+          params.set("keywords", aiData.keywords.join(","));
         }
 
         return `https://www.imdb.com/search/title/?${params.toString()}`;
       }
 
       function updatePreview() {
-        urlPreviewEl.textContent = buildImdbUrl();
+        urlPreviewEl.textContent = buildImdbUrl({ aiPrompt: aiPromptEl.value.trim() });
+      }
+
+      function runAiSearch() {
+        const prompt = aiPromptEl.value.trim();
+        const aiData = parseAiPrompt(prompt);
+        const aiUrl = buildImdbUrl({ aiPrompt: prompt });
+        const aiSummary = [];
+        if (aiData.genres.length) aiSummary.push(`genres: ${aiData.genres.join(", ")}`);
+        if (aiData.keywords.length) aiSummary.push(`keywords: ${aiData.keywords.join(", ")}`);
+        if (aiData.titleHint) aiSummary.push(`title hint: "${aiData.titleHint}"`);
+        aiNoteEl.textContent = aiSummary.length
+          ? `AI interpreted your prompt using ${aiSummary.join(" | ")}`
+          : "AI could not infer extra hints, so it used your direct filters only.";
+        window.open(aiUrl, "_blank", "noopener,noreferrer");
       }
 
       function renderGenreChips() {
@@ -314,20 +417,24 @@
         selectedGenres.clear();
         oldestYearEl.value = "2000";
         minRatingEl.value = "";
+        aiPromptEl.value = "";
         titleSearchEl.value = "";
         useMinVotesEl.checked = true;
         minVotesEl.value = "50000";
         renderGenreChips();
+        aiNoteEl.textContent = "AI helper ready. Add a prompt to guide the search.";
         updatePreview();
       }
 
       openImdbButtonEl.addEventListener("click", () => {
         window.open(buildImdbUrl(), "_blank", "noopener,noreferrer");
       });
+      aiSearchButtonEl.addEventListener("click", runAiSearch);
 
       resetButtonEl.addEventListener("click", resetFilters);
       oldestYearEl.addEventListener("input", updatePreview);
       minRatingEl.addEventListener("input", updatePreview);
+      aiPromptEl.addEventListener("input", updatePreview);
       titleSearchEl.addEventListener("input", updatePreview);
       minVotesEl.addEventListener("input", updatePreview);
       useMinVotesEl.addEventListener("change", updatePreview);
