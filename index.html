@@ -6,16 +6,18 @@
     <title>IMDB Searcher</title>
     <style>
       :root {
-        --bg: #f4f6fa;
-        --surface: #ffffff;
-        --surface-soft: #f9fbff;
-        --text: #131a27;
-        --muted: #5f6f88;
-        --border: #dde3ef;
-        --primary: #0f6fff;
-        --primary-soft: #e8f1ff;
-        --accent: #f5c518;
-        --shadow: 0 22px 50px rgba(16, 24, 40, 0.1);
+        --bg: #0b1020;
+        --bg-2: #0f162f;
+        --surface: #111a35;
+        --surface-soft: #162247;
+        --text: #eaf1ff;
+        --muted: #9fb0d8;
+        --border: #26355f;
+        --primary: #6f9bff;
+        --primary-strong: #5a88f7;
+        --accent: #7ae4c6;
+        --chip: #1c2a55;
+        --shadow: 0 18px 36px rgba(2, 7, 20, 0.4);
       }
 
       * {
@@ -27,61 +29,62 @@
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
         color: var(--text);
         background:
-          radial-gradient(circle at top right, rgba(15, 111, 255, 0.12), transparent 50%),
-          radial-gradient(circle at top left, rgba(245, 197, 24, 0.15), transparent 40%),
-          var(--bg);
+          radial-gradient(circle at top right, rgba(111, 155, 255, 0.18), transparent 45%),
+          radial-gradient(circle at 8% 0%, rgba(122, 228, 198, 0.14), transparent 30%),
+          linear-gradient(180deg, var(--bg-2), var(--bg));
+        min-height: 100vh;
       }
 
       .page {
-        width: min(1120px, 92%);
+        width: min(1140px, 94%);
         margin: 0 auto;
-        padding: 2rem 0 3rem;
+        padding: 1rem 0 2rem;
       }
 
       .hero {
         border: 1px solid var(--border);
-        background: linear-gradient(125deg, #0f1f4d, #123375 52%, #13438a);
-        color: #eef4ff;
-        border-radius: 24px;
-        padding: 2rem;
+        background: linear-gradient(140deg, #1a2854, #192f68 50%, #1f3b79);
+        color: #eef3ff;
+        border-radius: 20px;
+        padding: 1.25rem;
         box-shadow: var(--shadow);
       }
 
       .hero h1 {
         margin: 0;
-        font-size: clamp(1.7rem, 4vw, 2.8rem);
+        font-size: clamp(1.5rem, 5vw, 2.35rem);
         letter-spacing: -0.02em;
       }
 
       .hero h1 span {
-        color: var(--accent);
+        color: #ffd978;
       }
 
       .hero p {
-        margin: 0.65rem 0 0;
+        margin: 0.55rem 0 0;
         max-width: 760px;
-        color: #d3def2;
+        color: #d7e0f7;
+        font-size: 0.95rem;
+        line-height: 1.5;
       }
 
       .layout {
         margin-top: 1rem;
         display: grid;
         gap: 1rem;
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 1fr;
         align-items: start;
       }
 
       .panel {
         border: 1px solid var(--border);
-        border-radius: 20px;
+        border-radius: 18px;
         background: var(--surface);
         box-shadow: var(--shadow);
       }
 
       .filters {
         padding: 1rem;
-        position: sticky;
-        top: 1rem;
       }
 
       .filters h2,
@@ -115,12 +118,15 @@
       }
 
       input[type="number"],
-      input[type="text"] {
+      input[type="text"],
+      input[type="password"] {
         width: 100%;
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 0.62rem 0.7rem;
         font-size: 0.95rem;
+        background: var(--surface-soft);
+        color: var(--text);
       }
 
       .chips {
@@ -131,7 +137,7 @@
 
       .chip {
         border: 1px solid var(--border);
-        background: var(--surface-soft);
+        background: var(--chip);
         color: var(--muted);
         border-radius: 999px;
         font-size: 0.82rem;
@@ -141,9 +147,9 @@
       }
 
       .chip.active {
-        border-color: #c8dbff;
-        background: var(--primary-soft);
-        color: var(--primary);
+        border-color: #7da1ff;
+        background: #213a78;
+        color: #dce8ff;
       }
 
       .toggle-row {
@@ -168,17 +174,18 @@
         font-size: 0.95rem;
         font-weight: 700;
         cursor: pointer;
+        touch-action: manipulation;
       }
 
       .btn-primary {
-        background: var(--primary);
+        background: linear-gradient(180deg, var(--primary), var(--primary-strong));
         color: #fff;
       }
 
       .btn-secondary {
         border-color: var(--border);
         color: var(--muted);
-        background: #fff;
+        background: var(--surface-soft);
       }
 
       .results-wrap {
@@ -210,7 +217,7 @@
         border: 1px solid var(--border);
         border-radius: 14px;
         overflow: hidden;
-        background: #fff;
+        background: #0e1732;
       }
 
       .poster {
@@ -218,7 +225,7 @@
         aspect-ratio: 2 / 3;
         object-fit: cover;
         display: block;
-        background: #edf2fb;
+        background: #1a2750;
       }
 
       .card-content {
@@ -250,13 +257,13 @@
       }
 
       .badge-rating {
-        background: #fff6d8;
-        color: #816300;
+        background: rgba(255, 217, 120, 0.18);
+        color: #ffe5a4;
       }
 
       .badge-votes {
-        background: #eef5ff;
-        color: #35609c;
+        background: rgba(122, 228, 198, 0.16);
+        color: #b2f4e2;
       }
 
       .empty {
@@ -267,13 +274,14 @@
         font-size: 0.95rem;
       }
 
-      @media (max-width: 900px) {
+      @media (min-width: 940px) {
         .layout {
-          grid-template-columns: 1fr;
+          grid-template-columns: 330px 1fr;
         }
 
         .filters {
-          position: static;
+          position: sticky;
+          top: 1rem;
         }
       }
     </style>
@@ -294,9 +302,9 @@
 
           <div class="field">
             <label for="apiKeyInput">TMDB API key</label>
-            <input id="apiKeyInput" type="text" placeholder="Paste your TMDB v3 API key" />
+            <input id="apiKeyInput" type="password" placeholder="Paste your TMDB v3 API key" autocomplete="off" />
             <p class="hint">
-              Stored only in your browser. Get one at
+              Stored only in this browser (not hardcoded in source). Get one at
               <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">themoviedb.org/settings/api</a>.
             </p>
           </div>
@@ -313,7 +321,7 @@
 
           <div class="field">
             <label for="oldestYear">Oldest year (optional)</label>
-            <input id="oldestYear" type="number" min="1900" max="2100" placeholder="e.g. 1990" />
+            <input id="oldestYear" type="number" min="1900" max="2100" value="2000" />
           </div>
 
           <div class="field">
@@ -343,9 +351,6 @@
     <script>
       const TMDB_BASE = "https://api.themoviedb.org/3";
       const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
-      const HARDCODED_TMDB_API_KEY = "1b555bc4652d451432b8e8c9083634f5";
-      const HARDCODED_TMDB_READ_TOKEN =
-        "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYjU1NWJjNDY1MmQ0NTE0MzJiOGU4YzkwODM2MzRmNSIsIm5iZiI6MTc3MDc2MjY4MS4yMDk5OTk4LCJzdWIiOiI2OThiYjFiOTM0NzFhZTVmN2Q4ODViY2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Lv7-2QopxSV6XRPNwCy0WGToTSu_oyBrHyCaUatwKME";
 
       const fallbackGenres = [
         { id: 28, name: "Action" },
@@ -377,7 +382,7 @@
       let currentGenres = [...fallbackGenres];
       const selectedGenres = new Set();
       const storedKey = localStorage.getItem("tmdbApiKey") || "";
-      apiKeyEl.value = storedKey || HARDCODED_TMDB_API_KEY;
+      apiKeyEl.value = storedKey;
 
       function formatVotes(votes) {
         return Number(votes || 0).toLocaleString("en-US");
@@ -441,23 +446,13 @@
 
       async function tmdbGet(path, extraParams = {}) {
         const params = new URLSearchParams(extraParams);
-        if (!HARDCODED_TMDB_READ_TOKEN) {
-          params.set("api_key", apiKeyEl.value.trim() || HARDCODED_TMDB_API_KEY);
-        }
-
-        const response = await fetch(`${TMDB_BASE}${path}?${params.toString()}`, {
-          headers: HARDCODED_TMDB_READ_TOKEN
-            ? {
-                Authorization: `Bearer ${HARDCODED_TMDB_READ_TOKEN}`,
-                Accept: "application/json"
-              }
-            : undefined
-        });
+        params.set("api_key", apiKeyEl.value.trim());
+        const response = await fetch(`${TMDB_BASE}${path}?${params.toString()}`);
         return response;
       }
 
-      async function fetchGenres(apiKey) {
-        const response = await tmdbGet("/genre/movie/list", { language: "en-US", api_key: apiKey });
+      async function fetchGenres() {
+        const response = await tmdbGet("/genre/movie/list", { language: "en-US" });
         if (!response.ok) {
           throw new Error("Could not load genres from TMDB.");
         }
@@ -467,7 +462,7 @@
       }
 
       async function applyFilters() {
-        const apiKey = apiKeyEl.value.trim() || HARDCODED_TMDB_API_KEY;
+        const apiKey = apiKeyEl.value.trim();
         if (!apiKey) {
           statusEl.textContent = "Add your TMDB API key to load live data.";
           renderMovies([]);
@@ -542,7 +537,7 @@
       function resetFilters() {
         selectedGenres.clear();
         titleSearchEl.value = "";
-        oldestYearEl.value = "";
+        oldestYearEl.value = "2000";
         useMinVotesEl.checked = true;
         minVotesEl.value = "10000";
         renderGenreChips();
@@ -555,8 +550,9 @@
           renderGenreChips();
           return;
         }
+        localStorage.setItem("tmdbApiKey", key);
         try {
-          await fetchGenres(key);
+          await fetchGenres();
         } catch {
           currentGenres = [...fallbackGenres];
           renderGenreChips();
@@ -578,9 +574,8 @@
       useMinVotesEl.addEventListener("change", applyFilters);
 
       renderGenreChips();
-      const bootKey = storedKey || HARDCODED_TMDB_API_KEY;
-      if (bootKey) {
-        fetchGenres(bootKey).catch(() => {
+      if (storedKey) {
+        fetchGenres().catch(() => {
           currentGenres = [...fallbackGenres];
           renderGenreChips();
         });
