@@ -6,12 +6,16 @@
     <title>IMDB Searcher</title>
     <style>
       :root {
-        --bg: #0e1117;
-        --panel: #161b22;
-        --text: #e6edf3;
-        --muted: #9aa4b2;
+        --bg: #f4f6fa;
+        --surface: #ffffff;
+        --surface-soft: #f9fbff;
+        --text: #131a27;
+        --muted: #5f6f88;
+        --border: #dde3ef;
+        --primary: #0f6fff;
+        --primary-soft: #e8f1ff;
         --accent: #f5c518;
-        --border: #2b3240;
+        --shadow: 0 22px 50px rgba(16, 24, 40, 0.1);
       }
 
       * {
@@ -20,99 +24,181 @@
 
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: radial-gradient(circle at top, #161b22, #0e1117 55%);
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
         color: var(--text);
-        min-height: 100vh;
+        background:
+          radial-gradient(circle at top right, rgba(15, 111, 255, 0.12), transparent 50%),
+          radial-gradient(circle at top left, rgba(245, 197, 24, 0.15), transparent 40%),
+          var(--bg);
       }
 
-      .container {
-        width: min(1000px, 92%);
+      .page {
+        width: min(1120px, 92%);
         margin: 0 auto;
-        padding: 2.25rem 0 3rem;
+        padding: 2rem 0 3rem;
       }
 
-      header {
-        text-align: center;
-        margin-bottom: 1.5rem;
+      .hero {
+        border: 1px solid var(--border);
+        background: linear-gradient(125deg, #0f1f4d, #123375 52%, #13438a);
+        color: #eef4ff;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: var(--shadow);
       }
 
-      h1 {
+      .hero h1 {
         margin: 0;
-        font-size: clamp(1.8rem, 4vw, 2.6rem);
-        letter-spacing: 0.02em;
+        font-size: clamp(1.7rem, 4vw, 2.8rem);
+        letter-spacing: -0.02em;
       }
 
-      h1 span {
+      .hero h1 span {
         color: var(--accent);
       }
 
-      .subtitle {
-        margin-top: 0.5rem;
-        color: var(--muted);
+      .hero p {
+        margin: 0.65rem 0 0;
+        max-width: 760px;
+        color: #d3def2;
       }
 
-      .search-box {
-        background: color-mix(in srgb, var(--panel) 90%, #000 10%);
+      .layout {
+        margin-top: 1rem;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 320px 1fr;
+        align-items: start;
+      }
+
+      .panel {
         border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1rem;
-        display: grid;
-        gap: 0.85rem;
+        border-radius: 20px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
       }
 
-      .search-controls {
+      .filters {
+        padding: 1rem;
+        position: sticky;
+        top: 1rem;
+      }
+
+      .filters h2,
+      .results-header h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.08rem;
+      }
+
+      .field {
+        margin-bottom: 0.9rem;
+      }
+
+      .field label {
+        display: block;
+        font-size: 0.86rem;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+      }
+
+      input[type="number"],
+      input[type="text"] {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.62rem 0.7rem;
+        font-size: 0.95rem;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .chip {
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+        border-radius: 999px;
+        font-size: 0.82rem;
+        padding: 0.35rem 0.68rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .chip.active {
+        border-color: #c8dbff;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.35rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .actions {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr 1fr;
         gap: 0.6rem;
       }
 
-      input,
       button {
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        font-size: 1rem;
-      }
-
-      input {
-        background: #0f141b;
-        color: var(--text);
-        padding: 0.72rem 0.85rem;
-      }
-
-      input::placeholder {
-        color: #7b8594;
-      }
-
-      button {
-        padding: 0.72rem 1rem;
-        background: var(--accent);
-        color: #1d1d1d;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 0.65rem 0.8rem;
+        font-size: 0.95rem;
         font-weight: 700;
         cursor: pointer;
       }
 
-      button:hover {
-        filter: brightness(0.96);
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        border-color: var(--border);
+        color: var(--muted);
+        background: #fff;
+      }
+
+      .results-wrap {
+        padding: 1rem;
+      }
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 0.8rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.8rem;
       }
 
       .status {
         color: var(--muted);
-        font-size: 0.95rem;
+        font-size: 0.9rem;
       }
 
-      .grid {
+      .cards {
         margin-top: 1rem;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
         gap: 0.85rem;
       }
 
       .card {
-        background: color-mix(in srgb, var(--panel) 92%, #000 8%);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 0.85rem;
+        background: #fff;
       }
 
       .card h3 {
@@ -123,91 +209,236 @@
       .meta {
         margin-top: 0.35rem;
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
 
-      .pill {
-        display: inline-block;
-        margin-top: 0.65rem;
-        font-size: 0.8rem;
-        padding: 0.2rem 0.55rem;
-        border: 1px solid var(--border);
+      .badges {
+        margin-top: 0.7rem;
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+      }
+
+      .badge {
         border-radius: 999px;
-        color: var(--accent);
+        font-size: 0.78rem;
+        padding: 0.23rem 0.5rem;
+      }
+
+      .badge-rating {
+        background: #fff6d8;
+        color: #816300;
+      }
+
+      .badge-votes {
+        background: #eef5ff;
+        color: #35609c;
+      }
+
+      .empty {
+        padding: 1.1rem;
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .filters {
+          position: static;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="container">
-      <header>
+    <main class="page">
+      <section class="hero">
         <h1><span>IMDB</span> Searcher</h1>
-        <p class="subtitle">Fast movie lookup demo hosted on GitHub Pages.</p>
-      </header>
-
-      <section class="search-box">
-        <div class="search-controls">
-          <input id="searchInput" type="text" placeholder="Search title or genre (e.g. batman, sci-fi)" />
-          <button id="searchButton" type="button">Search</button>
-        </div>
-        <div class="status" id="statusText">Showing 8 movies.</div>
+        <p>
+          Browse English-language films with modern filters: pick one or more genres, set the oldest year, choose minimum vote count,
+          and get results sorted automatically by highest IMDb rating.
+        </p>
       </section>
 
-      <section id="results" class="grid"></section>
+      <section class="layout">
+        <aside class="panel filters">
+          <h2>Filters</h2>
+
+          <div class="field">
+            <label for="titleSearch">Title keyword (optional)</label>
+            <input id="titleSearch" type="text" placeholder="e.g. dark, matrix, king" />
+          </div>
+
+          <div class="field">
+            <label>Genres</label>
+            <div class="chips" id="genreChips"></div>
+          </div>
+
+          <div class="field">
+            <label for="oldestYear">Oldest year (optional)</label>
+            <input id="oldestYear" type="number" min="1900" max="2100" placeholder="e.g. 1990" />
+          </div>
+
+          <div class="field">
+            <div class="toggle-row">
+              <input id="useMinVotes" type="checkbox" checked />
+              <label for="useMinVotes">Use minimum votes</label>
+            </div>
+            <input id="minVotes" type="number" min="0" step="1000" value="10000" />
+          </div>
+
+          <div class="actions">
+            <button id="applyButton" class="btn-primary" type="button">Apply</button>
+            <button id="resetButton" class="btn-secondary" type="button">Reset</button>
+          </div>
+        </aside>
+
+        <section class="panel results-wrap">
+          <div class="results-header">
+            <h2>Top Rated Results</h2>
+            <p class="status" id="statusText">Loading films...</p>
+          </div>
+          <div id="results" class="cards"></div>
+        </section>
+      </section>
     </main>
 
     <script>
       const movies = [
-        { title: "The Dark Knight", year: 2008, rating: 9.0, genre: "Action, Crime, Drama" },
-        { title: "Inception", year: 2010, rating: 8.8, genre: "Action, Adventure, Sci-Fi" },
-        { title: "Interstellar", year: 2014, rating: 8.7, genre: "Adventure, Drama, Sci-Fi" },
-        { title: "The Shawshank Redemption", year: 1994, rating: 9.3, genre: "Drama" },
-        { title: "Fight Club", year: 1999, rating: 8.8, genre: "Drama" },
-        { title: "Pulp Fiction", year: 1994, rating: 8.9, genre: "Crime, Drama" },
-        { title: "The Matrix", year: 1999, rating: 8.7, genre: "Action, Sci-Fi" },
-        { title: "The Lord of the Rings: The Return of the King", year: 2003, rating: 9.0, genre: "Adventure, Drama, Fantasy" }
+        { title: "The Shawshank Redemption", year: 1994, rating: 9.3, genres: ["Drama"], votes: 2800000, language: "English" },
+        { title: "The Dark Knight", year: 2008, rating: 9.0, genres: ["Action", "Crime", "Drama"], votes: 2800000, language: "English" },
+        { title: "The Lord of the Rings: The Return of the King", year: 2003, rating: 9.0, genres: ["Adventure", "Drama", "Fantasy"], votes: 1950000, language: "English" },
+        { title: "Pulp Fiction", year: 1994, rating: 8.9, genres: ["Crime", "Drama"], votes: 2200000, language: "English" },
+        { title: "Inception", year: 2010, rating: 8.8, genres: ["Action", "Adventure", "Sci-Fi"], votes: 2500000, language: "English" },
+        { title: "Fight Club", year: 1999, rating: 8.8, genres: ["Drama"], votes: 2300000, language: "English" },
+        { title: "The Matrix", year: 1999, rating: 8.7, genres: ["Action", "Sci-Fi"], votes: 2000000, language: "English" },
+        { title: "Interstellar", year: 2014, rating: 8.7, genres: ["Adventure", "Drama", "Sci-Fi"], votes: 2100000, language: "English" },
+        { title: "Whiplash", year: 2014, rating: 8.5, genres: ["Drama", "Music"], votes: 980000, language: "English" },
+        { title: "Dune: Part Two", year: 2024, rating: 8.5, genres: ["Action", "Adventure", "Sci-Fi"], votes: 540000, language: "English" },
+        { title: "A Quiet Place", year: 2018, rating: 7.5, genres: ["Drama", "Horror", "Sci-Fi"], votes: 610000, language: "English" },
+        { title: "Parasite", year: 2019, rating: 8.5, genres: ["Drama", "Thriller"], votes: 980000, language: "Korean" }
       ];
 
       const resultsEl = document.getElementById("results");
-      const inputEl = document.getElementById("searchInput");
-      const buttonEl = document.getElementById("searchButton");
       const statusEl = document.getElementById("statusText");
+      const chipsEl = document.getElementById("genreChips");
+      const titleSearchEl = document.getElementById("titleSearch");
+      const oldestYearEl = document.getElementById("oldestYear");
+      const useMinVotesEl = document.getElementById("useMinVotes");
+      const minVotesEl = document.getElementById("minVotes");
+      const applyButtonEl = document.getElementById("applyButton");
+      const resetButtonEl = document.getElementById("resetButton");
 
-      function render(list) {
+      const selectedGenres = new Set();
+      const allGenres = [...new Set(movies.flatMap((movie) => movie.genres))].sort();
+
+      function formatVotes(votes) {
+        return votes.toLocaleString("en-US");
+      }
+
+      function renderGenreChips() {
+        chipsEl.innerHTML = "";
+        allGenres.forEach((genre) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "chip";
+          chip.textContent = genre;
+          chip.addEventListener("click", () => {
+            if (selectedGenres.has(genre)) {
+              selectedGenres.delete(genre);
+              chip.classList.remove("active");
+            } else {
+              selectedGenres.add(genre);
+              chip.classList.add("active");
+            }
+            applyFilters();
+          });
+          chipsEl.appendChild(chip);
+        });
+      }
+
+      function renderMovies(list) {
         resultsEl.innerHTML = "";
+        if (!list.length) {
+          resultsEl.innerHTML = '<div class="empty">No movies matched these filters. Try a lower vote threshold or fewer genres.</div>';
+          return;
+        }
+
         list.forEach((movie) => {
           const card = document.createElement("article");
           card.className = "card";
           card.innerHTML = `
             <h3>${movie.title}</h3>
-            <p class="meta">${movie.year} • ${movie.genre}</p>
-            <span class="pill">IMDb ${movie.rating}</span>
+            <p class="meta">${movie.year} • ${movie.genres.join(", ")} • ${movie.language}</p>
+            <div class="badges">
+              <span class="badge badge-rating">IMDb ${movie.rating}</span>
+              <span class="badge badge-votes">${formatVotes(movie.votes)} votes</span>
+            </div>
           `;
           resultsEl.appendChild(card);
         });
       }
 
-      function runSearch() {
-        const query = inputEl.value.trim().toLowerCase();
-        const filtered = movies.filter((movie) => {
-          return (
-            movie.title.toLowerCase().includes(query) ||
-            movie.genre.toLowerCase().includes(query)
-          );
-        });
-        statusEl.textContent = query
-          ? `Found ${filtered.length} result${filtered.length === 1 ? "" : "s"} for "${inputEl.value.trim()}".`
-          : `Showing ${movies.length} movies.`;
-        render(filtered);
+      function applyFilters() {
+        const titleQuery = titleSearchEl.value.trim().toLowerCase();
+        const oldestYear = Number(oldestYearEl.value);
+        const shouldUseVotes = useMinVotesEl.checked;
+        const minVotes = Number(minVotesEl.value || 10000);
+
+        const filtered = movies
+          .filter((movie) => movie.language.toLowerCase() === "english")
+          .filter((movie) => {
+            if (!titleQuery) return true;
+            return movie.title.toLowerCase().includes(titleQuery);
+          })
+          .filter((movie) => {
+            if (!selectedGenres.size) return true;
+            return [...selectedGenres].every((genre) => movie.genres.includes(genre));
+          })
+          .filter((movie) => {
+            if (!oldestYearEl.value) return true;
+            return movie.year >= oldestYear;
+          })
+          .filter((movie) => {
+            if (!shouldUseVotes) return true;
+            return movie.votes >= minVotes;
+          })
+          .sort((a, b) => {
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            return b.votes - a.votes;
+          });
+
+        statusEl.textContent = `Showing ${filtered.length} English film${filtered.length === 1 ? "" : "s"}, sorted by highest rated.`;
+        renderMovies(filtered);
       }
 
-      buttonEl.addEventListener("click", runSearch);
-      inputEl.addEventListener("keydown", (event) => {
+      function resetFilters() {
+        selectedGenres.clear();
+        titleSearchEl.value = "";
+        oldestYearEl.value = "";
+        useMinVotesEl.checked = true;
+        minVotesEl.value = "10000";
+        renderGenreChips();
+        applyFilters();
+      }
+
+      applyButtonEl.addEventListener("click", applyFilters);
+      resetButtonEl.addEventListener("click", resetFilters);
+      titleSearchEl.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
-          runSearch();
+          applyFilters();
         }
       });
+      oldestYearEl.addEventListener("change", applyFilters);
+      minVotesEl.addEventListener("change", applyFilters);
+      useMinVotesEl.addEventListener("change", applyFilters);
 
-      render(movies);
+      renderGenreChips();
+      applyFilters();
     </script>
   </body>
 </html>
