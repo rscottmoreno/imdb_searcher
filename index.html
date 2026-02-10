@@ -167,6 +167,13 @@
         gap: 0.6rem;
       }
 
+      .btn-imdb {
+        grid-column: 1 / -1;
+        border-color: #4f5f8d;
+        background: #1a2343;
+        color: #ffd978;
+      }
+
       button {
         border: 1px solid transparent;
         border-radius: 12px;
@@ -332,9 +339,15 @@
             <input id="minVotes" type="number" min="0" step="1000" value="10000" />
           </div>
 
+          <div class="field">
+            <label for="minRating">Minimum rating (optional)</label>
+            <input id="minRating" type="number" min="0" max="10" step="0.1" placeholder="e.g. 7.5" />
+          </div>
+
           <div class="actions">
             <button id="applyButton" class="btn-primary" type="button">Apply</button>
             <button id="resetButton" class="btn-secondary" type="button">Reset</button>
+            <button id="openImdbButton" class="btn-imdb" type="button">Open in IMDb Advanced Search</button>
           </div>
         </aside>
 
@@ -376,8 +389,10 @@
       const oldestYearEl = document.getElementById("oldestYear");
       const useMinVotesEl = document.getElementById("useMinVotes");
       const minVotesEl = document.getElementById("minVotes");
+      const minRatingEl = document.getElementById("minRating");
       const applyButtonEl = document.getElementById("applyButton");
       const resetButtonEl = document.getElementById("resetButton");
+      const openImdbButtonEl = document.getElementById("openImdbButton");
 
       let currentGenres = [...fallbackGenres];
       const selectedGenres = new Set();
@@ -386,6 +401,13 @@
 
       function formatVotes(votes) {
         return Number(votes || 0).toLocaleString("en-US");
+      }
+
+      function toImdbGenreName(genreName) {
+        const map = {
+          "Sci-Fi": "sci_fi"
+        };
+        return map[genreName] || genreName.toLowerCase().replace(/\s+/g, "_");
       }
 
       function renderGenreChips() {
@@ -475,6 +497,7 @@
         const oldestYear = Number(oldestYearEl.value);
         const useVotes = useMinVotesEl.checked;
         const minVotes = Number(minVotesEl.value || 10000);
+        const minRating = minRatingEl.value ? Number(minRatingEl.value) : null;
         const selectedGenreCsv = [...selectedGenres].join(",");
 
         const params = new URLSearchParams({
@@ -493,6 +516,9 @@
         }
         if (selectedGenreCsv) {
           params.set("with_genres", selectedGenreCsv);
+        }
+        if (minRatingEl.value && !Number.isNaN(minRating)) {
+          params.set("vote_average.gte", String(minRating));
         }
 
         statusEl.textContent = "Loading live movies...";
@@ -540,7 +566,46 @@
         oldestYearEl.value = "2000";
         useMinVotesEl.checked = true;
         minVotesEl.value = "10000";
+        minRatingEl.value = "";
         renderGenreChips();
+      }
+
+      function openImdbAdvancedSearch() {
+        const imdbParams = new URLSearchParams({
+          title_type: "feature",
+          languages: "en",
+          sort: "user_rating,desc"
+        });
+
+        const titleQuery = titleSearchEl.value.trim();
+        const oldestYear = oldestYearEl.value.trim();
+        const useVotes = useMinVotesEl.checked;
+        const minVotes = minVotesEl.value.trim();
+        const minRating = minRatingEl.value.trim();
+
+        if (titleQuery) {
+          imdbParams.set("title", titleQuery);
+        }
+        if (oldestYear) {
+          imdbParams.set("release_date", `${oldestYear}-01-01,`);
+        }
+        if (useVotes && minVotes) {
+          imdbParams.set("num_votes", `${minVotes},`);
+        }
+        if (minRating) {
+          imdbParams.set("user_rating", `${minRating},`);
+        }
+        if (selectedGenres.size) {
+          const genreNames = [...selectedGenres]
+            .map((id) => currentGenres.find((genre) => genre.id === id)?.name)
+            .filter(Boolean)
+            .map((name) => toImdbGenreName(name));
+          if (genreNames.length) {
+            imdbParams.set("genres", genreNames.join(","));
+          }
+        }
+
+        window.open(`https://www.imdb.com/search/title/?${imdbParams.toString()}`, "_blank", "noopener,noreferrer");
       }
 
       apiKeyEl.addEventListener("change", async () => {
@@ -564,6 +629,7 @@
         resetFilters();
         applyFilters();
       });
+      openImdbButtonEl.addEventListener("click", openImdbAdvancedSearch);
       titleSearchEl.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           applyFilters();
@@ -571,6 +637,7 @@
       });
       oldestYearEl.addEventListener("change", applyFilters);
       minVotesEl.addEventListener("change", applyFilters);
+      minRatingEl.addEventListener("change", applyFilters);
       useMinVotesEl.addEventListener("change", applyFilters);
 
       renderGenreChips();
