@@ -179,12 +179,6 @@
 
       <section class="panel">
         <div class="field">
-          <label for="titleSearch">Search</label>
-          <input id="titleSearch" type="text" placeholder="e.g. scary movie in the woods" />
-          <p class="hint">Optional title keyword</p>
-        </div>
-
-        <div class="field">
           <label>Genre Picker</label>
           <div class="chips" id="genreChips"></div>
         </div>
@@ -240,7 +234,6 @@
       const chipsEl = document.getElementById("genreChips");
       const oldestYearEl = document.getElementById("oldestYear");
       const minRatingEl = document.getElementById("minRating");
-      const titleSearchEl = document.getElementById("titleSearch");
       const useMinVotesEl = document.getElementById("useMinVotes");
       const minVotesEl = document.getElementById("minVotes");
       const openImdbButtonEl = document.getElementById("openImdbButton");
@@ -263,7 +256,6 @@
 
         const oldestYear = oldestYearEl.value.trim();
         const minRating = minRatingEl.value.trim();
-        const titleQuery = titleSearchEl.value.trim();
         const minVotes = minVotesEl.value.trim();
 
         if (oldestYear) {
@@ -271,9 +263,6 @@
         }
         if (minRating) {
           params.set("user_rating", `${minRating},`);
-        }
-        if (titleQuery) {
-          params.set("title", titleQuery);
         }
         if (useMinVotesEl.checked && minVotes) {
           params.set("num_votes", `${minVotes},`);
@@ -314,7 +303,6 @@
         selectedGenres.clear();
         oldestYearEl.value = "2000";
         minRatingEl.value = "";
-        titleSearchEl.value = "";
         useMinVotesEl.checked = true;
         minVotesEl.value = "50000";
         renderGenreChips();
@@ -325,17 +313,9 @@
         window.open(buildImdbUrl(), "_blank", "noopener,noreferrer");
       });
 
-      titleSearchEl.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          window.open(buildImdbUrl(), "_blank", "noopener,noreferrer");
-        }
-      });
-
       resetButtonEl.addEventListener("click", resetFilters);
       oldestYearEl.addEventListener("input", updatePreview);
       minRatingEl.addEventListener("input", updatePreview);
-      titleSearchEl.addEventListener("input", updatePreview);
       minVotesEl.addEventListener("input", updatePreview);
       useMinVotesEl.addEventListener("change", updatePreview);
 
